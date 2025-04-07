@@ -14,6 +14,8 @@ from common import get_chrome_driver
 from common.helpers import get_folder_path, get_files_to_upload_cogs, move_file
 from sellerboard import InventoryPage
 
+os.system("cls")
+
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
 os.makedirs(os.path.join(ROOT_DIR, "logs"), exist_ok=True)
 
@@ -23,6 +25,7 @@ logger = logging.getLogger("default")
 
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
+SLEEP_TIME = 30
 
 
 def upload_one(cli: InventoryPage, file: Dict[str, str]) -> None:
@@ -47,12 +50,14 @@ def upload_all(
             logger.info(f"Uploaded: {file_name}")
         except KeyboardInterrupt:
             logger.warning("Interrupted by user")
-        except Exception:
+        except Exception as e:
             logger.error(f"Failed to upload: {file_name}")
+            logger.error(e)
             move_file(file_path, error_folder)
+            time.sleep(600)
         finally:
             cli.refresh_page()
-            time.sleep(10)
+            time.sleep(SLEEP_TIME)
 
     eu_files = files["eu_files"]
     us_files = files["us_files"]
@@ -60,7 +65,7 @@ def upload_all(
         process_file(file)
 
     cli.switch_marketplace()
-    time.sleep(10)
+    time.sleep(SLEEP_TIME)
 
     for file in us_files:
         process_file(file)
@@ -77,6 +82,9 @@ def upload_report(cli: InventoryPage, input_folder: str) -> None:
 
 def main():
     input_folder = get_folder_path()
+    if input_folder is None:
+        return
+
     driver = get_chrome_driver()
     cli = InventoryPage(driver)
     try:
@@ -86,7 +94,6 @@ def main():
     except:
         logger.error("Error happened")
     finally:
-        cli.logout()
         cli.quit_driver()
 
 

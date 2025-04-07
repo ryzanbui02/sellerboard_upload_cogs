@@ -65,7 +65,8 @@ class BasePage:
             try:
                 input_elm.clear()
             except se.ElementNotInteractableException:
-                print(f"Cannot clear input element {target}")
+                pass
+                # print(f"Cannot clear input element {target}")
             input_elm.send_keys(keys_to_send)
 
         return self.handle_error(func, target=target)
